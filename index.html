@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRYOUT · 소개 카드</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700&family=Anton&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2A4A;--navy-mid:#1e3260;
+  --pink:#F0406A;--pink-light:#ff6b8a;--pink-soft:rgba(240,64,106,0.08);
+  --cream:#f5f0e8;--bg:#ddd6c8;
+  --border:rgba(27,42,74,0.12);--text:#1B2A4A;--muted:#8a7f72;
+}
+body{background:var(--bg);color:var(--text);font-family:'Pretendard','Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 12px 60px;gap:20px;}
+
+/* ── HEADER ── */
+.header{text-align:center;}
+.logo-tryout{font-family:'Anton',sans-serif;font-size:44px;letter-spacing:6px;color:#1B2A4A;-webkit-text-stroke:2px var(--pink);line-height:1;}
+.logo-tryout span{color:var(--pink);-webkit-text-stroke:0;}
+.logo-sub{font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+/* ── LAYOUT ── */
+.app{width:100%;max-width:1100px;display:flex;gap:20px;align-items:flex-start;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:200px;flex-shrink:0;background:#faf7f2;border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.sb-title{font-family:'Black Han Sans',sans-serif;font-size:10px;letter-spacing:3px;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);}
+.player-list{display:flex;flex-direction:column;gap:6px;}
+.player-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:background 0.15s;border:1.5px solid transparent;}
+.player-item:hover{background:var(--pink-soft);}
+.player-item.active{background:var(--pink-soft);border-color:rgba(240,64,106,0.3);}
+.player-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:13px;color:#fff;flex-shrink:0;}
+.player-info{flex:1;min-width:0;}
+.player-name{font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-num{font-size:10px;color:var(--muted);}
+.btn-add{width:100%;padding:9px;border:1.5px dashed rgba(27,42,74,0.2);border-radius:10px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;}
+.btn-add:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-soft);}
+.btn-del{width:100%;padding:7px;border:1px solid rgba(240,64,106,0.25);border-radius:8px;background:transparent;color:var(--pink);font-size:11px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;}
+.btn-del:hover{background:var(--pink-soft);}
+
+/* ── MAIN AREA ── */
+.main{flex:1;display:flex;flex-direction:column;gap:20px;min-width:0;}
+
+/* ── CARDS ROW ── */
+.cards-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.card-col{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.card-label{font-family:'Black Han Sans',sans-serif;font-size:9px;letter-spacing:3px;color:var(--muted);}
+
+/* ── CARD FRONT ── */
+.card-face{width:260px;height:450px;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 0 0 1.5px rgba(27,42,74,0.15),4px 4px 0 rgba(27,42,74,0.08),0 16px 40px rgba(27,42,74,0.25);}
+.card-face.front::before{content:'';position:absolute;inset:0;background:linear-gradient(130deg,rgba(255,255,255,0.35) 0%,transparent 55%);z-index:9;pointer-events:none;}
+.card-stripe{position:absolute;top:0;left:0;right:0;height:7px;z-index:6;display:flex;}
+.card-stripe-l,.card-stripe-r{flex:1;}
+.card-tag{position:absolute;top:14px;left:0;z-index:6;background:var(--pink);padding:3px 12px 3px 10px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);font-family:'Black Han Sans',sans-serif;font-size:10px;letter-spacing:3px;color:#fff;}
+.card-badge{position:absolute;top:10px;right:12px;z-index:6;font-family:'Anton',sans-serif;font-size:42px;line-height:1;color:rgba(27,42,74,0.07);letter-spacing:-2px;}
+.photo-area{position:absolute;inset:0;overflow:hidden;background:#000;}
+.photo-area img{width:100%;height:100%;object-fit:contain;display:block;transform-origin:center center;user-select:none;-webkit-user-drag:none;touch-action:none;position:absolute;top:0;left:0;}
+.photo-empty{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.photo-empty svg{opacity:0.2;}
+.photo-empty span{font-size:10px;color:var(--muted);letter-spacing:2px;}
+.grad-overlay{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.card-info{position:absolute;bottom:0;left:0;right:0;padding:10px 14px 18px;z-index:5;display:flex;flex-direction:column;gap:0;}
+.card-pos{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:3px;}
+.card-name-text{font-family:'Pretendard',sans-serif;font-weight:600;font-size:22px;letter-spacing:1px;line-height:1;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.4);margin-top:3px;}
+.card-sub{font-size:9px;color:#1B2A4A;letter-spacing:1px;margin-top:2px;opacity:0.6;display:flex;gap:6px;align-items:center;}
+.card-divider{height:1px;background:linear-gradient(90deg,var(--pink) 0%,rgba(255,255,255,0.2) 70%,transparent 100%);margin:6px 0 4px;}
+.card-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;}
+.stat-row{display:flex;align-items:center;gap:5px;}
+.stat-lbl{font-family:'Black Han Sans',sans-serif;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,0.9);width:26px;flex-shrink:0;text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+.card-logo-txt{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(27,42,74,0.2);text-align:right;margin-top:4px;}
+
+/* ── CARD BACK ── */
+.card-back-face{width:260px;height:450px;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 1.5px rgba(27,42,74,0.15),4px 4px 0 rgba(27,42,74,0.08),0 16px 40px rgba(27,42,74,0.25);}
+.back-stripe{height:7px;display:flex;flex-shrink:0;}
+.back-body{flex:1;display:flex;flex-direction:column;padding:14px 16px 12px;gap:10px;overflow:hidden;}
+.back-name-row{display:flex;align-items:flex-end;justify-content:space-between;}
+.back-name{font-family:'Anton',sans-serif;font-size:26px;letter-spacing:2px;color:var(--navy);line-height:1;}
+.back-num{font-family:'Anton',sans-serif;font-size:44px;color:rgba(27,42,74,0.07);line-height:1;letter-spacing:-2px;}
+.back-tag-txt{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:3px;margin-bottom:2px;}
+.back-divider-line{height:1.5px;background:linear-gradient(90deg,var(--pink),transparent);}
+.back-motto-label{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:3px;}
+.back-motto{font-family:'Pretendard',sans-serif;font-style:italic;font-size:12px;color:var(--navy);line-height:1.5;opacity:0.8;padding:8px 10px;background:rgba(27,42,74,0.04);border-left:3px solid var(--pink);border-radius:0 6px 6px 0;}
+.sns-list{display:flex;flex-direction:column;gap:5px;}
+.sns-row{display:flex;align-items:center;gap:7px;font-size:11px;background:rgba(27,42,74,0.04);border-radius:7px;padding:6px 8px;}
+.sns-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0;}
+.sns-val{flex:1;font-family:'Pretendard',sans-serif;font-size:11px;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.back-qr-row{display:flex;align-items:center;gap:10px;}
+.qr-box{width:60px;height:60px;background:#fff;border-radius:7px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.qr-box canvas,.qr-box img{width:52px!important;height:52px!important;}
+.qr-info{flex:1;}
+.qr-label-txt{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:3px;}
+.qr-url-txt{font-size:9px;color:var(--navy);word-break:break-all;opacity:0.7;line-height:1.4;}
+.back-bottom{display:flex;align-items:center;justify-content:flex-end;flex-shrink:0;}
+.back-logo-txt{font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(27,42,74,0.15);}
+
+/* editable */
+.editable{cursor:text;transition:background 0.15s,box-shadow 0.15s;border-radius:4px;outline:none;}
+.editable:hover{background:rgba(240,64,106,0.08);box-shadow:0 0 0 1.5px rgba(240,64,106,0.3);}
+.editable:focus{background:rgba(240,64,106,0.1);box-shadow:0 0 0 2px rgba(240,64,106,0.5);outline:none;}
+.editable[data-placeholder]:empty::before{content:attr(data-placeholder);opacity:0.35;font-style:italic;pointer-events:none;}
+.edit-hint{font-size:8px;letter-spacing:1.5px;color:rgba(240,64,106,0.5);text-align:center;animation:pulseHint 2s ease-in-out infinite;}
+@keyframes pulseHint{0%,100%{opacity:0.4;}50%{opacity:0.9;}}
+
+/* ── PANEL ── */
+.panel{width:100%;background:#faf7f2;border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px;}
+.sec-title{font-family:'Black Han Sans',sans-serif;font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:11px;color:rgba(27,42,74,0.5);}
+input[type=text],input[type=number]{background:#fff;border:1px solid rgba(27,42,74,0.15);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;padding:9px 11px;outline:none;width:100%;-webkit-appearance:none;}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--pink);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.color-field{display:flex;align-items:center;gap:8px;}
+.color-field label{font-size:11px;color:rgba(27,42,74,0.5);width:50px;flex-shrink:0;margin:0;}
+input[type=color]{width:34px;height:32px;border:1px solid rgba(27,42,74,0.15);border-radius:6px;padding:2px;background:#fff;cursor:pointer;flex-shrink:0;-webkit-appearance:none;}
+.hex-inp{flex:1;background:#fff;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;padding:7px 9px;outline:none;-webkit-appearance:none;}
+.hex-inp:focus{border-color:var(--pink);}
+.col-dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(27,42,74,0.15);flex-shrink:0;}
+.upload-label{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;background:rgba(27,42,74,0.03);border:1.5px dashed rgba(27,42,74,0.2);border-radius:10px;cursor:pointer;font-size:13px;color:rgba(27,42,74,0.45);letter-spacing:1px;text-align:center;-webkit-tap-highlight-color:transparent;min-height:56px;transition:border-color 0.2s,background 0.2s;}
+.upload-label:active{border-color:var(--pink);background:var(--pink-soft);}
+.upload-label.loaded{border-color:rgba(27,42,74,0.25);background:rgba(27,42,74,0.04);}
+.thumb-row{display:flex;align-items:center;gap:10px;width:100%;}
+.photo-thumb{width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;}
+.thumb-text{flex:1;font-size:11px;color:rgba(27,42,74,0.55);}
+.btn-remove{background:rgba(240,64,106,0.15);border:none;border-radius:6px;color:var(--pink);font-size:11px;padding:5px 9px;cursor:pointer;flex-shrink:0;}
+.stat-ctrl-row{display:flex;align-items:center;gap:10px;}
+.stat-ctrl-label{font-family:'Black Han Sans',sans-serif;font-size:11px;letter-spacing:1px;color:rgba(27,42,74,0.55);width:46px;flex-shrink:0;}
+.stat-boxes{display:flex;gap:5px;}
+.stat-box{width:30px;height:30px;border:1.5px solid rgba(27,42,74,0.2);border-radius:6px;cursor:pointer;background:rgba(27,42,74,0.04);-webkit-tap-highlight-color:transparent;transition:background 0.12s,border-color 0.12s,transform 0.1s;}
+.stat-box.on{background:var(--pink);border-color:var(--pink);box-shadow:0 0 8px rgba(240,64,106,0.4);}
+.stat-box:active{transform:scale(0.88);}
+.btn-dl{width:100%;padding:13px;background:linear-gradient(90deg,var(--pink),#d42d5a);border:none;border-radius:10px;color:#fff;font-family:'Black Han Sans',sans-serif;font-size:14px;letter-spacing:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 20px rgba(240,64,106,0.3);}
+
+/* mobile */
+@media(max-width:700px){
+  .app{flex-direction:column;}
+  .sidebar{width:100%;}
+  .player-list{flex-direction:row;flex-wrap:wrap;}
+  .player-item{flex:0 0 auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-tryout">TRY<span>♡</span>UT</div>
+  <div class="logo-sub">너와의 첫 매치를 시작합니다 · Profile Card</div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-title">× PLAYERS ×</div>
+    <div class="player-list" id="playerList"></div>
+    <button class="btn-add" onclick="addPlayer()">+ 출연자 추가</button>
+    <button class="btn-del" onclick="deletePlayer()">− 현재 삭제</button>
+    <button class="btn-del" onclick="manualSave()" style="border-color:rgba(27,42,74,0.25);color:var(--navy);" onmouseover="this.style.background='rgba(27,42,74,0.06)'" onmouseout="this.style.background='transparent'">💾 페이지에 저장</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- CARDS -->
+    <div class="cards-row">
+      <div class="card-col">
+        <div class="card-label">FRONT</div>
+        <div class="card-face front" id="cardFront">
+          <div class="card-stripe"><div class="card-stripe-l" id="stripeL"></div><div class="card-stripe-r" id="stripeR"></div></div>
+          <div class="card-tag" id="cardTag">TRYOUT x LOVE</div>
+          <div class="card-badge" id="cardBadge">01</div>
+          <div class="photo-area" id="photoArea">
+            <div class="photo-empty">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M3 20c0-3 3-5 9-5s9 2 9 5"/></svg>
+              <span>사진을 넣어보세요</span>
+            </div>
+          </div>
+          <div class="grad-overlay" id="gradOverlay"></div>
+          <div class="card-info">
+            <div class="card-pos" id="cardPos">NO. 01 · TRYOUT x LOVE</div>
+            <div class="card-name-text" id="cardNameTxt">이름</div>
+            <div class="card-sub"><span id="cardAge">24세</span><span style="opacity:0.4">·</span><span id="cardJob">직업</span><span style="opacity:0.4">·</span><span id="cardHeight">170cm</span></div>
+            <div class="card-divider"></div>
+            <div class="card-stats-grid" id="cardStats"></div>
+            <div class="card-logo-txt" id="cardLogo">TRYOUT x LOVE</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-col">
+        <div class="card-label">BACK</div>
+        <div class="card-back-face" id="cardBack">
+          <div class="back-stripe"><div class="back-stripe-l" id="backStripeL" style="background:var(--pink)"></div><div class="back-stripe-r" id="backStripeR" style="background:var(--navy-mid)"></div></div>
+          <div class="back-body">
+            <div class="back-name-row">
+              <div>
+                <div class="back-tag-txt" id="backTag" style="color:var(--pink)">TRYOUT x LOVE</div>
+                <div class="back-name" id="backName">이름</div>
+              </div>
+              <div class="back-num" id="backNum">01</div>
+            </div>
+            <div class="back-divider-line" id="backDivider"></div>
+            <div>
+              <div class="back-motto-label">MOTTO</div>
+              <div class="back-motto editable" id="backMotto" contenteditable="true" spellcheck="false" data-placeholder="나를 표현하는 한 문장"></div>
+            </div>
+            <div>
+              <div class="back-motto-label" style="margin-bottom:5px">CONTACT</div>
+              <div class="sns-list" id="backContactList"></div>
+            </div>
+            <div class="back-qr-row">
+              <div class="qr-box" id="qrBox">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(27,42,74,0.2)" stroke-width="1.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+              </div>
+              <div class="qr-info">
+                <div class="qr-label-txt">QR LINK</div>
+                <div class="qr-url-txt editable" id="qrDisplay" contenteditable="true" spellcheck="false" data-placeholder="링크 입력 후 Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" onblur="buildQR(this.innerText.trim())"></div>
+              </div>
+            </div>
+            <div class="back-bottom"><div class="back-logo-txt" id="backLogo">TRYOUT x LOVE</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL -->
+    <div class="panel">
+      <div>
+        <div class="sec-title">기본 정보</div>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:10px;">
+          <div class="field"><label>이름</label><input type="text" id="iName" value="" placeholder="이름" oninput="syncPanel()"></div>
+          <div class="row2">
+            <div class="field"><label>나이</label><input type="number" id="iAge" value="24" min="18" max="60" oninput="syncPanel()"></div>
+            <div class="field"><label>키 (cm)</label><input type="number" id="iHeight" value="170" min="140" max="220" oninput="syncPanel()"></div>
+          </div>
+          <div class="field"><label>직업</label><input type="text" id="iJob" value="" placeholder="직업" oninput="syncPanel()"></div>
+          <div class="row2">
+            <div class="field"><label>등번호</label><input type="text" id="iNum" value="01" oninput="syncPanel()"></div>
+            <div class="field"><label>프로그램명</label><input type="text" id="iShow" value="TRYOUT x LOVE" oninput="syncPanel()"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-title">카드 색상</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
+          <div class="color-field">
+            <label>메인</label>
+            <input type="color" id="c1p" value="#F0406A" oninput="pickerChange('c1',this.value)">
+            <input type="text" class="hex-inp" id="c1h" value="#F0406A" oninput="hexChange('c1',this.value)" maxlength="7">
+            <div class="col-dot" id="c1d" style="background:#F0406A"></div>
+          </div>
+          <div class="color-field">
+            <label>포인트</label>
+            <input type="color" id="c2p" value="#1B2A4A" oninput="pickerChange('c2',this.value)">
+            <input type="text" class="hex-inp" id="c2h" value="#1B2A4A" oninput="hexChange('c2',this.value)" maxlength="7">
+            <div class="col-dot" id="c2d" style="background:#1B2A4A"></div>
+          </div>
+          <div class="color-field">
+            <label>배경</label>
+            <input type="color" id="cbp" value="#f5f0e8" oninput="pickerChange('cb',this.value)">
+            <input type="text" class="hex-inp" id="cbh" value="#f5f0e8" oninput="hexChange('cb',this.value)" maxlength="7">
+            <div class="col-dot" id="cbd" style="background:#f5f0e8"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-title">사진</div>
+        <div style="margin-top:10px;">
+          <label class="upload-label" id="uploadLabel" for="fileInput">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>탭하여 사진 선택</span>
+          </label>
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onFile(this)">
+        </div>
+      </div>
+
+      <div id="photoEditSec" style="display:none">
+        <div class="sec-title">사진 편집</div>
+        <div style="margin-top:8px;padding:10px;background:rgba(27,42,74,0.05);border-radius:10px;font-size:12px;color:rgba(27,42,74,0.55);text-align:center;line-height:1.7;">
+          📌 <strong>드래그</strong> 위치 · <strong>핀치</strong> 확대/축소
+          <button onclick="resetImg()" style="display:block;width:100%;margin-top:8px;padding:7px;border-radius:7px;border:1px solid rgba(27,42,74,0.2);background:rgba(27,42,74,0.06);color:rgba(27,42,74,0.7);font-size:11px;cursor:pointer;">↺ 초기화</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-title">CONTACT</div>
+        <div id="contactPanelList" style="display:flex;flex-direction:column;gap:7px;margin-top:10px;"></div>
+        <button id="contactAddBtn" onclick="addContact()" style="width:100%;margin-top:8px;padding:8px;border:1.5px dashed rgba(27,42,74,0.2);border-radius:8px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--pink)';this.style.color='var(--pink)';" onmouseout="this.style.borderColor='rgba(27,42,74,0.2)';this.style.color='var(--muted)';">+ 연락처 추가</button>
+      </div>
+
+      <div>
+        <div class="sec-title">스탯</div>
+        <div id="statWrap" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn-dl" onclick="download('front')">⬇ 앞면 저장</button>
+          <button class="btn-dl" onclick="download('back')" style="background:linear-gradient(90deg,#1B2A4A,#1e3260);">⬇ 뒷면 저장</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// ── DATA ──
+var STAT_DEFS = [{key:'body',lbl:'신체'},{key:'agil',lbl:'민첩'},{key:'focus',lbl:'집중'},{key:'skill',lbl:'기술'},{key:'luck',lbl:'행운'}];
+
+function newPlayer(idx){
+  return {
+    id: Date.now()+idx,
+    name:'', age:24, height:170, job:'', num:String(idx+1).padStart(2,'0'), show:'TRYOUT x LOVE',
+    col:{c1:'#F0406A',c2:'#1B2A4A',cb:'#f5f0e8'},
+    stats:{body:3,agil:4,focus:3,skill:5,luck:2},
+    photo:null, imgX:0, imgY:0, imgScale:1,
+    motto:'', contacts:[], qr:''
+  };
+}
+
+var players = [newPlayer(0)];
+var cur = 0; // current player index
+
+// ── SIDEBAR ──
+function renderSidebar(){
+  var list = document.getElementById('playerList');
+  list.innerHTML = '';
+  players.forEach(function(p,i){
+    var item = document.createElement('div');
+    item.className = 'player-item' + (i===cur?' active':'');
+    var av = document.createElement('div');
+    av.className = 'player-avatar';
+    av.style.background = p.col.c1;
+    av.textContent = p.num || (i+1);
+    var info = document.createElement('div');
+    info.className = 'player-info';
+    info.innerHTML = '<div class="player-name">'+(p.name||'이름 없음')+'</div><div class="player-num">NO. '+p.num+'</div>';
+    item.appendChild(av);
+    item.appendChild(info);
+    item.onclick = function(){ selectPlayer(i); };
+    list.appendChild(item);
+  });
+}
+
+function selectPlayer(i){
+  saveCurrent(); // save back-card editable content before switching
+  cur = i;
+  loadPlayer();
+  renderSidebar();
+}
+
+function addPlayer(){
+  saveCurrent();
+  players.push(newPlayer(players.length));
+  cur = players.length-1;
+  loadPlayer();
+  renderSidebar();
+  debounceSave();
+}
+
+function deletePlayer(){
+  if(players.length===1){ alert('출연자가 1명 남았어요.'); return; }
+  players.splice(cur,1);
+  cur = Math.min(cur, players.length-1);
+  loadPlayer();
+  renderSidebar();
+  debounceSave();
+}
+
+// ── SAVE / LOAD ──
+function saveCurrent(){
+  var p = players[cur];
+  p.motto = document.getElementById('backMotto').innerText;
+  p.qr    = document.getElementById('qrDisplay').innerText;
+  // contacts saved inline via renderContactPanel
+}
+
+function loadPlayer(){
+  var p = players[cur];
+  // panel inputs
+  document.getElementById('iName').value   = p.name;
+  document.getElementById('iAge').value    = p.age;
+  document.getElementById('iHeight').value = p.height;
+  document.getElementById('iJob').value    = p.job;
+  document.getElementById('iNum').value    = p.num;
+  document.getElementById('iShow').value   = p.show;
+  // colors
+  ['c1','c2','cb'].forEach(function(k){
+    var v = p.col[k];
+    document.getElementById(k+'p').value = v;
+    document.getElementById(k+'h').value = v;
+    document.getElementById(k+'d').style.background = v;
+  });
+  // photo
+  imgX=p.imgX; imgY=p.imgY; imgScale=p.imgScale;
+  if(p.photo){ setPhoto(p.photo,false); } else { clearPhotoUI(); }
+  // stats
+  renderStatBoxes(p);
+  // back editable
+  document.getElementById('backMotto').innerText = p.motto||'';
+  document.getElementById('qrDisplay').innerText = p.qr||'';
+  buildQR(p.qr||'');
+  // contacts
+  if(!p.contacts) p.contacts = [];
+  renderContactPanel();
+  renderBackContacts();
+  // sync card visuals
+  syncPanel();
+}
+
+// ── CONTACTS ──
+var EMOJI_OPTIONS = ['📸','💬','📞','📧','🎵','🐦','▶️','💼','🌐','💎'];
+
+function addContact(){
+  var p = players[cur];
+  if(!p.contacts) p.contacts = [];
+  if(p.contacts.length >= 5){ alert('최대 5개까지 추가할 수 있어요.'); return; }
+  p.contacts.push({icon:'📸', val:''});
+  renderContactPanel();
+  renderBackContacts();
+  debounceSave();
+}
+
+function removeContact(i){
+  var p = players[cur];
+  p.contacts.splice(i,1);
+  renderContactPanel();
+  renderBackContacts();
+  debounceSave();
+}
+
+function updateContactIcon(i, icon){
+  players[cur].contacts[i].icon = icon;
+  renderContactPanel();
+  renderBackContacts();
+  debounceSave();
+}
+
+function updateContactVal(i, val){
+  players[cur].contacts[i].val = val;
+  renderBackContacts();
+  debounceSave();
+}
+
+function renderContactPanel(){
+  var p = players[cur];
+  if(!p.contacts) p.contacts = [];
+  var wrap = document.getElementById('contactPanelList');
+  wrap.innerHTML = '';
+
+  p.contacts.forEach(function(c, i){
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+    // emoji select
+    var sel = document.createElement('select');
+    sel.style.cssText = 'width:46px;padding:6px 2px;border:1px solid rgba(27,42,74,0.15);border-radius:7px;background:#fff;font-size:15px;text-align:center;cursor:pointer;outline:none;flex-shrink:0;';
+    EMOJI_OPTIONS.forEach(function(e){
+      var opt = document.createElement('option');
+      opt.value = e; opt.textContent = e;
+      if(e === c.icon) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.onchange = (function(idx){ return function(){ updateContactIcon(idx, this.value); }; })(i);
+
+    // text input
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = c.val;
+    inp.placeholder = '내용 입력';
+    inp.style.flex = '1';
+    inp.oninput = (function(idx){ return function(){ updateContactVal(idx, this.value); }; })(i);
+
+    // delete button
+    var del = document.createElement('button');
+    del.textContent = '×';
+    del.style.cssText = 'width:28px;height:28px;border:none;border-radius:6px;background:rgba(240,64,106,0.12);color:var(--pink);font-size:16px;cursor:pointer;flex-shrink:0;line-height:1;display:flex;align-items:center;justify-content:center;';
+    del.onclick = (function(idx){ return function(){ removeContact(idx); }; })(i);
+
+    row.appendChild(sel);
+    row.appendChild(inp);
+    row.appendChild(del);
+    wrap.appendChild(row);
+  });
+
+  // 추가 버튼 노출 여부
+  var btn = document.getElementById('contactAddBtn');
+  if(btn) btn.style.display = p.contacts.length >= 5 ? 'none' : 'block';
+}
+
+function renderBackContacts(){
+  var p = players[cur];
+  var list = document.getElementById('backContactList');
+  if(!list) return;
+  list.innerHTML = '';
+  if(!p.contacts || p.contacts.length === 0){
+    list.innerHTML = '<div style="font-size:10px;color:rgba(27,42,74,0.3);padding:4px 0;font-style:italic;">연락처를 추가해보세요</div>';
+    return;
+  }
+  p.contacts.forEach(function(c){
+    var row = document.createElement('div');
+    row.className = 'sns-row';
+    row.innerHTML = '<span class="sns-icon">'+c.icon+'</span><span class="sns-val">'+c.val+'</span>';
+    list.appendChild(row);
+  });
+}
+
+// ── STAT BOXES ──
+function renderStatBoxes(p){
+  var wrap = document.getElementById('statWrap');
+  wrap.innerHTML = '';
+  STAT_DEFS.forEach(function(s,i){
+    var d = document.createElement('div');
+    d.className = 'stat-ctrl-row';
+    var boxes = '';
+    for(var n=1;n<=5;n++) boxes += '<div class="stat-box'+(n<=p.stats[s.key]?' on':'')+'" onclick="setStat(\''+s.key+'\','+n+')" id="box_'+s.key+'_'+n+'"></div>';
+    d.innerHTML = '<span class="stat-ctrl-label">'+s.lbl+'</span><div class="stat-boxes">'+boxes+'</div>';
+    wrap.appendChild(d);
+  });
+}
+
+function setStat(key,v){
+  players[cur].stats[key] = v;
+  for(var n=1;n<=5;n++){
+    var el=document.getElementById('box_'+key+'_'+n);
+    if(el) el.className='stat-box'+(n<=v?' on':'');
+  }
+  renderCardStats();
+  debounceSave();
+}
+
+// ── COLORS ──
+function validHex(h){ return /^#[0-9A-Fa-f]{6}$/.test(h); }
+function pickerChange(k,v){ players[cur].col[k]=v; document.getElementById(k+'h').value=v; document.getElementById(k+'d').style.background=v; syncPanel(); }
+function hexChange(k,raw){ var v=raw.trim(); if(v&&v[0]!=='#') v='#'+v; if(validHex(v)){ players[cur].col[k]=v; document.getElementById(k+'p').value=v; document.getElementById(k+'d').style.background=v; syncPanel(); } }
+
+// ── PHOTO ──
+var imgX=0,imgY=0,imgScale=1,dragStart=null,lastDist=0;
+function resetImg(){ imgX=0;imgY=0;imgScale=1; players[cur].imgX=0;players[cur].imgY=0;players[cur].imgScale=1; applyImg(); }
+function applyImg(){ var img=document.getElementById('cardImg'); if(img) img.style.transform='translate('+imgX+'px,'+imgY+'px) scale('+imgScale+')'; }
+var CL_CLOUD  = 'djlx3dtjq';
+var CL_PRESET = 'vns6gkqc';
+
+async function uploadToCloudinary(dataUrl){
+  showSaved('⏳ 사진 업로드 중...');
+  var res = await fetch(dataUrl);
+  var blob = await res.blob();
+  var fd = new FormData();
+  fd.append('file', blob);
+  fd.append('upload_preset', CL_PRESET);
+  var r = await fetch('https://api.cloudinary.com/v1_1/' + CL_CLOUD + '/image/upload', {
+    method: 'POST', body: fd
+  });
+  if(!r.ok) throw new Error('업로드 실패');
+  var json = await r.json();
+  return json.secure_url;
+}
+
+function onFile(input){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = async function(e){
+    var dataUrl = e.target.result;
+    // 미리보기 즉시 표시
+    players[cur].photo = dataUrl;
+    imgX=0; imgY=0; imgScale=1;
+    players[cur].imgX=0; players[cur].imgY=0; players[cur].imgScale=1;
+    setPhoto(dataUrl, true);
+    // Cloudinary에 업로드 후 URL로 교체
+    try {
+      var url = await uploadToCloudinary(dataUrl);
+      players[cur].photo = url;
+      debounceSave();
+    } catch(err){
+      showSaved('⚠ 사진 업로드 실패');
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function setPhoto(url,resetTransform){
+  if(resetTransform){ imgX=0;imgY=0;imgScale=1; }
+  var area=document.getElementById('photoArea'); area.innerHTML='';
+  var img=document.createElement('img'); img.id='cardImg'; img.src=url;
+  img.style.cssText='width:100%;height:100%;object-fit:contain;display:block;transform-origin:center center;user-select:none;-webkit-user-drag:none;touch-action:none;position:absolute;top:0;left:0;';
+  img.style.transform='translate('+imgX+'px,'+imgY+'px) scale('+imgScale+')';
+  area.appendChild(img);
+  document.getElementById('photoEditSec').style.display='block';
+  area.onmousedown=function(e){ e.preventDefault(); dragStart={x:e.clientX-imgX,y:e.clientY-imgY}; document.onmousemove=function(e){ if(!dragStart)return; imgX=e.clientX-dragStart.x; imgY=e.clientY-dragStart.y; players[cur].imgX=imgX;players[cur].imgY=imgY; applyImg(); }; document.onmouseup=function(){ dragStart=null; document.onmousemove=null; document.onmouseup=null; }; };
+  area.onwheel=function(e){ e.preventDefault(); imgScale=Math.min(5,Math.max(0.2,imgScale*(e.deltaY>0?0.9:1.1))); players[cur].imgScale=imgScale; applyImg(); };
+  img.addEventListener('touchstart',function(e){ e.preventDefault(); if(e.touches.length===1){ dragStart={x:e.touches[0].clientX-imgX,y:e.touches[0].clientY-imgY}; } else if(e.touches.length===2){ dragStart=null; lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); } },{passive:false});
+  img.addEventListener('touchmove',function(e){ e.preventDefault(); if(e.touches.length===1&&dragStart){ imgX=e.touches[0].clientX-dragStart.x; imgY=e.touches[0].clientY-dragStart.y; players[cur].imgX=imgX;players[cur].imgY=imgY; applyImg(); } else if(e.touches.length===2){ var dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); if(lastDist>0){ imgScale=Math.min(3,Math.max(0.5,imgScale*(dist/lastDist))); players[cur].imgScale=imgScale; } lastDist=dist; applyImg(); } },{passive:false});
+  img.addEventListener('touchend',function(){ dragStart=null; lastDist=0; });
+  var lbl=document.getElementById('uploadLabel'); lbl.classList.add('loaded');
+  lbl.innerHTML='<div class="thumb-row"><img class="photo-thumb" src="'+url+'"><span class="thumb-text">탭하여 변경</span><button class="btn-remove" onclick="clearPhoto(event)">제거</button></div>';
+}
+
+function clearPhotoUI(){
+  document.getElementById('photoEditSec').style.display='none';
+  document.getElementById('photoArea').innerHTML='<div class="photo-empty"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M3 20c0-3 3-5 9-5s9 2 9 5"/></svg><span>사진을 넣어보세요</span></div>';
+  var lbl=document.getElementById('uploadLabel'); lbl.classList.remove('loaded');
+  lbl.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>탭하여 사진 선택</span>';
+}
+
+function clearPhoto(e){ e.preventDefault(); players[cur].photo=null; imgX=0;imgY=0;imgScale=1; document.getElementById('fileInput').value=''; clearPhotoUI(); }
+
+// ── SYNC ──
+function syncPanel(){
+  var p = players[cur];
+  p.name   = document.getElementById('iName').value;
+  p.age    = document.getElementById('iAge').value;
+  p.height = document.getElementById('iHeight').value;
+  p.job    = document.getElementById('iJob').value;
+  p.num    = document.getElementById('iNum').value;
+  p.show   = document.getElementById('iShow').value;
+  renderCard();
+  renderSidebar();
+}
+
+function renderCard(){
+  var p = players[cur];
+  var c1=p.col.c1, c2=p.col.c2, cb=p.col.cb;
+  var numStr = String(p.num).length<2?'0'+p.num:p.num;
+
+  // front
+  document.getElementById('cardFront').style.background=cb;
+  document.getElementById('stripeL').style.background=c1;
+  document.getElementById('stripeR').style.background=c2;
+  document.getElementById('cardTag').textContent=p.show;
+  document.getElementById('cardBadge').textContent=numStr;
+  document.getElementById('cardNameTxt').textContent=p.name||'이름';
+  document.getElementById('cardAge').textContent=p.age+'세';
+  document.getElementById('cardJob').textContent=p.job||'직업';
+  document.getElementById('cardHeight').textContent=p.height+'cm';
+  document.getElementById('cardPos').textContent='NO. '+numStr+' · '+p.show;
+  document.getElementById('cardPos').style.color=c1;
+  document.getElementById('cardLogo').textContent=p.show;
+
+  var rv=parseInt(cb.slice(1,3),16),gv=parseInt(cb.slice(3,5),16),bv=parseInt(cb.slice(5,7),16);
+  function rgba(a){ return 'rgba('+rv+','+gv+','+bv+','+a+')'; }
+  document.getElementById('gradOverlay').style.background='linear-gradient(to bottom,'+rgba(0)+' 0%,'+rgba(0)+' 38%,'+rgba(0.15)+' 50%,'+rgba(0.5)+' 63%,'+rgba(0.9)+' 78%,'+rgba(0.97)+' 100%)';
+  document.getElementById('photoArea').style.background='#111';
+
+  // back
+  document.getElementById('cardBack').style.background=cb;
+  document.getElementById('backStripeL').style.background=c1;
+  document.getElementById('backStripeR').style.background=c2;
+  document.getElementById('backName').textContent=p.name||'이름';
+  document.getElementById('backNum').textContent=numStr;
+  document.getElementById('backTag').textContent=p.show;
+  document.getElementById('backTag').style.color=c1;
+  document.getElementById('backDivider').style.background='linear-gradient(90deg,'+c1+',transparent)';
+  document.getElementById('backMotto').style.borderColor=c1;
+  document.getElementById('backLogo').textContent=p.show;
+
+  renderCardStats();
+}
+
+function renderCardStats(){
+  var p=players[cur]; var c1=p.col.c1;
+  var el=document.getElementById('cardStats'); el.innerHTML='';
+  STAT_DEFS.forEach(function(s){
+    var hearts='';
+    for(var n=1;n<=5;n++) hearts+='<span style="font-size:13px;color:'+(n<=p.stats[s.key]?c1:'rgba(27,42,74,0.18)')+';line-height:1;">'+(n<=p.stats[s.key]?'♥':'♡')+'</span>';
+    var r=document.createElement('div'); r.className='stat-row';
+    r.innerHTML='<span class="stat-lbl">'+s.lbl+'</span><span style="flex:1;display:flex;gap:1px;">'+hearts+'</span>';
+    el.appendChild(r);
+  });
+}
+
+// ── QR ──
+function buildQR(url){
+  var box=document.getElementById('qrBox'); box.innerHTML='';
+  if(!url||url.length<4){ box.innerHTML='<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(27,42,74,0.2)" stroke-width="1.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>'; return; }
+  try{ new QRCode(box,{text:url,width:52,height:52,colorDark:players[cur].col.c2,colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); }catch(e){}
+  players[cur].qr=url;
+  debounceSave();
+}
+
+// ── DOWNLOAD ──
+function openInNewTab(dataUrl, filename){
+  var win=window.open('','_blank');
+  win.document.write('<html><head><title>'+filename+'</title></head><body style="margin:0;background:#111;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;gap:12px;"><img src="'+dataUrl+'" style="max-width:100%;max-height:90vh;border-radius:10px;"><p style="color:#888;text-align:center;font-family:sans-serif;font-size:12px;letter-spacing:2px;">이미지를 길게 눌러 저장하세요</p></body></html>');
+  win.document.close();
+}
+
+function roundClip(ctx, W, H, sc){
+  var r=10*sc;
+  ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(W*sc-r,0); ctx.quadraticCurveTo(W*sc,0,W*sc,r); ctx.lineTo(W*sc,H*sc-r); ctx.quadraticCurveTo(W*sc,H*sc,W*sc-r,H*sc); ctx.lineTo(r,H*sc); ctx.quadraticCurveTo(0,H*sc,0,H*sc-r); ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0); ctx.closePath(); ctx.clip();
+}
+
+function download(face){
+  saveCurrent();
+  var p=players[cur];
+  if(face==='front' && !p.photo){ alert('사진을 먼저 업로드해주세요!'); return; }
+
+  if(face==='back'){
+    downloadBack(p); return;
+  }
+
+  // ── FRONT ──
+  var card=document.getElementById('cardFront');
+  var W=card.offsetWidth, H=card.offsetHeight, sc=3;
+  var cb=p.col.cb;
+  var rv=parseInt(cb.slice(1,3),16),gv=parseInt(cb.slice(3,5),16),bv=parseInt(cb.slice(5,7),16);
+  var canvas=document.createElement('canvas'); canvas.width=W*sc; canvas.height=H*sc;
+  var ctx=canvas.getContext('2d');
+  var drawImg=new Image();
+  drawImg.onload=function(){
+    ctx.save(); roundClip(ctx,W,H,sc);
+    ctx.fillStyle=cb; ctx.fillRect(0,0,W*sc,H*sc);
+    var iw=drawImg.naturalWidth,ih=drawImg.naturalHeight,cs=Math.min((W*sc)/iw,(H*sc)/ih),sw=iw*cs,sh=ih*cs;
+    ctx.save(); ctx.translate(W*sc/2+p.imgX*sc,H*sc/2+p.imgY*sc); ctx.scale(p.imgScale,p.imgScale); ctx.drawImage(drawImg,-sw/2,-sh/2,sw,sh); ctx.restore();
+    var grad=ctx.createLinearGradient(0,0,0,H*sc);
+    ['0:0','0.38:0','0.50:0.1','0.55:0.4','0.58:0.9','0.60:1','1:1'].forEach(function(s){ var parts=s.split(':'); grad.addColorStop(parseFloat(parts[0]),'rgba('+rv+','+gv+','+bv+','+parts[1]+')'); });
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W*sc,H*sc);
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle=p.col.c1; ctx.fillRect(0,0,W*sc/2,5*sc);
+    ctx.fillStyle=p.col.c2; ctx.fillRect(W*sc/2,0,W*sc/2,5*sc);
+    ctx.fillStyle=p.col.c1; ctx.beginPath(); ctx.rect(0,14*sc,140*sc,20*sc); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold '+(10*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2*sc)+'px';
+    ctx.fillText(p.show,10*sc,28*sc);
+    var numStr=String(p.num).length<2?'0'+p.num:p.num;
+    ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.font='bold '+(42*sc)+'px Anton,sans-serif'; ctx.textAlign='right';
+    ctx.fillText(numStr,(W-12)*sc,56*sc); ctx.textAlign='left';
+    var posY=H*0.60;
+    ctx.fillStyle=p.col.c1; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2.5*sc)+'px';
+    ctx.fillText('NO. '+numStr+' · '+p.show,14*sc,(posY+12)*sc);
+    ctx.fillStyle='#fff'; ctx.font='600 '+(22*sc)+'px Pretendard,"Noto Sans KR",sans-serif'; ctx.letterSpacing=(1*sc)+'px';
+    ctx.fillText(p.name||'이름',14*sc,(posY+12+3+22)*sc);
+    ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font=(9*sc)+'px Pretendard,"Noto Sans KR",sans-serif'; ctx.letterSpacing=(0.5*sc)+'px';
+    ctx.fillText(p.age+'세  ·  '+(p.job||'')+'  ·  '+p.height+'cm',14*sc,(posY+12+3+22+5+12)*sc);
+    var lineY=posY+12+3+22+5+12+7;
+    var grad2=ctx.createLinearGradient(14*sc,0,(W-14)*sc,0);
+    grad2.addColorStop(0,p.col.c1); grad2.addColorStop(0.7,'rgba(255,255,255,0.2)'); grad2.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.strokeStyle=grad2; ctx.lineWidth=1*sc; ctx.beginPath(); ctx.moveTo(14*sc,lineY*sc); ctx.lineTo((W-14)*sc,lineY*sc); ctx.stroke();
+    var statY=lineY+5; var colW=W/2;
+    STAT_DEFS.forEach(function(s,i){ var c2=i%2,row=Math.floor(i/2); var x=(14+c2*colW)*sc; var y=(statY+row*13)*sc; ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(1*sc)+'px'; ctx.fillText(s.lbl,x,y+8*sc); for(var n=1;n<=5;n++){ ctx.fillStyle=n<=p.stats[s.key]?p.col.c1:'rgba(255,255,255,0.2)'; ctx.font=(10*sc)+'px sans-serif'; ctx.fillText(n<=p.stats[s.key]?'♥':'♡',x+(24+(n-1)*12)*sc,y+9*sc); } });
+    ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2.5*sc)+'px'; ctx.textAlign='right';
+    ctx.fillText(p.show,(W-12)*sc,(H-10)*sc); ctx.textAlign='left';
+    ctx.restore();
+    openInNewTab(canvas.toDataURL('image/png'), (p.name||'card')+'_front.png');
+  };
+  drawImg.onerror=function(){ alert('사진 로딩 실패'); };
+  drawImg.src=p.photo;
+}
+
+function downloadBack(p){
+  var card=document.getElementById('cardBack');
+  var W=card.offsetWidth, H=card.offsetHeight, sc=3;
+  var cb=p.col.cb;
+  var canvas=document.createElement('canvas'); canvas.width=W*sc; canvas.height=H*sc;
+  var ctx=canvas.getContext('2d');
+
+  ctx.save(); roundClip(ctx,W,H,sc);
+
+  // 배경
+  ctx.fillStyle=cb; ctx.fillRect(0,0,W*sc,H*sc);
+
+  // 상단 스트라이프
+  ctx.fillStyle=p.col.c1; ctx.fillRect(0,0,W*sc/2,7*sc);
+  ctx.fillStyle=p.col.c2; ctx.fillRect(W*sc/2,0,W*sc/2,7*sc);
+
+  var numStr=String(p.num).length<2?'0'+p.num:p.num;
+  var pad=14*sc, y=7*sc;
+
+  // 배경 번호 워터마크
+  ctx.fillStyle='rgba(27,42,74,0.06)'; ctx.font='bold '+(44*sc)+'px Anton,sans-serif'; ctx.textAlign='right';
+  ctx.fillText(numStr,(W-12)*sc, y+52*sc); ctx.textAlign='left';
+
+  // 태그
+  y += 14*sc;
+  ctx.fillStyle=p.col.c1; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(3*sc)+'px';
+  ctx.fillText(p.show, pad, y);
+
+  // 이름
+  y += 3*sc;
+  ctx.fillStyle=p.col.c1[0]==='#'?p.col.c1:'#1B2A4A';
+  ctx.fillStyle='#1B2A4A'; ctx.font='bold '+(26*sc)+'px Anton,sans-serif'; ctx.letterSpacing=(2*sc)+'px';
+  ctx.fillText(p.name||'이름', pad, y+26*sc); y+=26*sc;
+
+  // 구분선
+  y += 10*sc;
+  var div=ctx.createLinearGradient(pad,0,W*sc-pad,0);
+  div.addColorStop(0,p.col.c1); div.addColorStop(1,'rgba(27,42,74,0)');
+  ctx.strokeStyle=div; ctx.lineWidth=1.5*sc;
+  ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W*sc-pad,y); ctx.stroke();
+  y += 12*sc;
+
+  // MOTTO
+  ctx.fillStyle=p.col.c1; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2*sc)+'px';
+  ctx.fillText('MOTTO', pad, y); y+=4*sc;
+
+  // motto box
+  var mottoText=p.motto||'';
+  ctx.fillStyle='rgba(27,42,74,0.04)'; ctx.fillRect(pad, y, W*sc-pad*2, 36*sc);
+  ctx.fillStyle=p.col.c1; ctx.fillRect(pad, y, 3*sc, 36*sc);
+  ctx.fillStyle='rgba(27,42,74,0.8)'; ctx.font='italic '+(11*sc)+'px Pretendard,"Noto Sans KR",sans-serif'; ctx.letterSpacing=(0.3*sc)+'px';
+  // wrap text
+  var maxW=W*sc-pad*2-10*sc; var words=mottoText.split(''); var line=''; var lineY=y+14*sc;
+  for(var wi=0;wi<words.length;wi++){
+    var testLine=line+words[wi];
+    if(ctx.measureText(testLine).width>maxW && line!==''){
+      ctx.fillText(line, pad+8*sc, lineY); line=words[wi]; lineY+=14*sc;
+    } else { line=testLine; }
+  }
+  if(line) ctx.fillText(line, pad+8*sc, lineY);
+  y += 44*sc;
+
+  // CONTACT
+  ctx.fillStyle=p.col.c1; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2*sc)+'px';
+  ctx.fillText('CONTACT', pad, y); y+=6*sc;
+
+  var contacts = p.contacts || [];
+  contacts.forEach(function(c){
+    ctx.fillStyle='rgba(27,42,74,0.05)'; ctx.beginPath(); ctx.roundRect(pad,y,W*sc-pad*2,22*sc,4*sc); ctx.fill();
+    ctx.font=(13*sc)+'px sans-serif'; ctx.letterSpacing='0px';
+    ctx.fillText(c.icon, pad+6*sc, y+16*sc);
+    ctx.fillStyle='#1B2A4A'; ctx.font=(10*sc)+'px Pretendard,"Noto Sans KR",sans-serif'; ctx.letterSpacing=(0.3*sc)+'px';
+    ctx.fillText(c.val||'', pad+28*sc, y+16*sc);
+    y+=26*sc;
+  });
+  y+=2*sc;
+
+  // QR
+  var qrEl=document.querySelector('#qrBox canvas')||document.querySelector('#qrBox img');
+  if(qrEl){
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.roundRect(pad,y,52*sc,52*sc,5*sc); ctx.fill();
+    try{ ctx.drawImage(qrEl,pad+2*sc,y+2*sc,48*sc,48*sc); }catch(e){}
+    ctx.fillStyle=p.col.c1; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(2*sc)+'px';
+    ctx.fillText('QR LINK', pad+58*sc, y+10*sc);
+    ctx.fillStyle='rgba(27,42,74,0.6)'; ctx.font=(9*sc)+'px Pretendard,sans-serif'; ctx.letterSpacing=(0.3*sc)+'px';
+    var qrTxt=(p.qr||'').length>30?(p.qr||'').slice(0,30)+'…':(p.qr||'');
+    ctx.fillText(qrTxt, pad+58*sc, y+22*sc);
+    y+=58*sc;
+  }
+
+  // 하단 로고
+  ctx.fillStyle='rgba(27,42,74,0.12)'; ctx.font=(8*sc)+'px "Black Han Sans",sans-serif'; ctx.letterSpacing=(3*sc)+'px'; ctx.textAlign='right';
+  ctx.fillText(p.show,(W-pad)*sc, H*sc-10*sc); ctx.textAlign='left';
+
+  ctx.restore();
+  openInNewTab(canvas.toDataURL('image/png'), (p.name||'card')+'_back.png');
+}
+
+// ── MANUAL SAVE ──
+function manualSave(){
+  saveCurrent();
+  saveToStorage();
+}
+
+// ── JSONBIN STORAGE ──
+var BIN_ID  = '6a0e80096610dd3ae87d3187';
+var BIN_KEY = '$2a$10$Fq72qelbNKT.abOS3QzWiu/oFecNaozQ0GvJ684583V5W040m0PHi';
+var BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+var _saving = false;
+
+async function saveToStorage(){
+  if(_saving) return;
+  _saving = true;
+  showSaved('⏳ 저장 중...');
+  try {
+    var data = { players: players, cur: cur };
+    var res = await fetch(BIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY },
+      body: JSON.stringify(data)
+    });
+    if(res.ok){
+      showSaved('✓ 저장됨');
+    } else {
+      showSaved('✕ 저장 실패 (' + res.status + ')');
+    }
+  } catch(e){
+    showSaved('✕ 네트워크 오류');
+  }
+  _saving = false;
+}
+
+async function loadFromStorage(){
+  try {
+    showSaved('⏳ 불러오는 중...');
+    var res = await fetch(BIN_URL + '/latest', {
+      headers: { 'X-Master-Key': BIN_KEY }
+    });
+    if(!res.ok) return false;
+    var json = await res.json();
+    var data = json.record;
+    if(data && data.players && data.players.length > 0){
+      players = data.players;
+      cur = parseInt(data.cur || 0);
+      if(cur >= players.length) cur = 0;
+      showSaved('✓ 불러옴');
+      return true;
+    }
+  } catch(e){}
+  return false;
+}
+
+// debounce save
+var _saveTimer = null;
+function debounceSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function(){
+    saveCurrent();
+    saveToStorage();
+  }, 1200);
+}
+
+// patch syncPanel to trigger save
+var _origSyncPanel = syncPanel;
+syncPanel = function(){
+  _origSyncPanel();
+  debounceSave();
+};
+
+// patch editable elements to auto-save on input
+document.querySelectorAll('[contenteditable]').forEach(function(el){
+  el.addEventListener('input', debounceSave);
+});
+
+// storage indicator
+var indicator = document.createElement('div');
+indicator.id = 'saveIndicator';
+indicator.style.cssText = 'position:fixed;bottom:16px;right:16px;background:rgba(27,42,74,0.88);color:#fff;font-size:11px;font-family:\'Pretendard\',sans-serif;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;letter-spacing:1px;max-width:260px;text-align:center;';
+document.body.appendChild(indicator);
+
+var _hideTimer = null;
+function showSaved(msg){
+  var el = document.getElementById('saveIndicator');
+  if(!el) return;
+  el.textContent = msg || '✓ 저장됨';
+  el.style.background = (msg && msg.indexOf('✕') > -1) ? 'rgba(180,30,30,0.92)'
+                      : (msg && msg.indexOf('⏳') > -1) ? 'rgba(27,42,74,0.7)'
+                      : 'rgba(27,42,74,0.88)';
+  el.style.opacity = '1';
+  clearTimeout(_hideTimer);
+  if(msg && msg.indexOf('⏳') === -1){
+    _hideTimer = setTimeout(function(){ el.style.opacity='0'; }, 2500);
+  }
+}
+
+// ── INIT ──
+(async function(){
+  var loaded = await loadFromStorage();
+  if(!loaded) players = [newPlayer(0)];
+  loadPlayer();
+  renderSidebar();
+})();
+</script>
+</body>
+</html>
